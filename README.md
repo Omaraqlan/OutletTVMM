@@ -1,4 +1,5 @@
 # OutletTVMM
+please read this file as RAW.
 This project will get all the outlet tv from mediamarket oultet website, to check which tv companies in outlet, check loss of profit.
 we will be using Python and beautiful soup, then i will try to put in azure data factory from some manipulation then try to use BI Power to make some report out of it.
 
