@@ -1,3 +1,4 @@
+#Important Notes: you will chromedriver.exe and pip install most of the needed liberaries
 import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -78,6 +79,6 @@ df.to_csv('OutletTv.csv',index=False)
 
 
 
-#Providing accountstorage name , account storage key, container name to create the file in blobstorage
+#Providing account storage name , account storage key, container name to create the file in blobstorage , blob_name any name you want
 block_blob_service = BlockBlobService(account_name='pythonoqmm', account_key='hmV5qyCNX1CPLGScE3mO1xawQsO3X4BDWxtreB7kmv40RA0cZ3el5skyCKswAKdl+Q/sKPjyleYBkuQ6/BLoVg==')
 block_blob_service.create_blob_from_path(container_name="pythonmm",blob_name="OutletTv.csv",file_path="C:\\Users\\Aqlanoz\\Desktop\\OutletMM\\OutletTv.csv")
