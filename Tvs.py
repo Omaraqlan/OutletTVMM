@@ -42,7 +42,7 @@ action.click(on_element=element)
 action.perform()
 
 # open all outlet tvs.
-driver.get("http://outlet.mediamarkt.nl/beeld-geluid/televisie-projectie/televisies?sort=p.price&order=ASC&limit=10")
+driver.get("http://outlet.mediamarkt.nl/beeld-geluid/televisie-projectie/televisies?sort=p.price&order=ASC&limit="+numberOfTV)
 
 # wait for all elements with div have higher than 0 height to download
 wait = WebDriverWait(driver, 10)
