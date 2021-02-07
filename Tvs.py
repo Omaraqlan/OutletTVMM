@@ -9,6 +9,7 @@ from fake_useragent import UserAgent
 from azure.storage.blob import BlockBlobService
 import requests
 from bs4 import BeautifulSoup
+from urllib.request import urlopen
 
 # Define website
 url = "http://outlet.mediamarkt.nl/beeld-geluid/televisie-projectie/televisies"
@@ -52,37 +53,49 @@ listofTV = []
 listofDamage = []
 # needed to put it in dataframe and save it as csv or upload it in data azure
 for element in range(len(divsProd)):
-    # lstData = divsProd[element].text.splitlines()
+    lstData = divsProd[element].text.splitlines()
     tvURL = divsProd[element].find_elements_by_tag_name("a")[0].get_attribute('href').split("?")[0]
-    # lstData.append(tvURL)
+    lstData.append(tvURL)
     # Details
     listofDmgDetails = []
-    page = requests.get(tvURL)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    items = soup.find(class_="tab-pane active").get_text()
+    dmgDict = dict()
+    dmgDict['Other'] = None
+    page = urlopen(tvURL)
+    soup = BeautifulSoup(page.read(), 'html.parser')
+    table = soup.find(class_="tab-pane active").find("table")
+    for table_row in table.findAll('tr'):
+        columns = table_row.findAll('td')
+        if len(columns) == 1:
+            dmgDict['Other'] = str(columns[0].text).rstrip()
+            continue
+        dmgDict[str(columns[0].text).rstrip()] = str(columns[1].text).lstrip(":").lstrip()
     listofDmgDetails.append(tvURL[tvURL.find("ID"):])
-    listofDmgDetails.append(items[items.find("Verpakking"):items.find("Voorkant")].split(":")[1].lstrip())
-    listofDmgDetails.append(items[items.find("Voorkant"):items.find("Achterkant")].split(":")[1].lstrip())
-    listofDmgDetails.append(items[items.find("Achterkant"):items.find("Bovenkant")].split(":")[1].lstrip())
-    listofDmgDetails.append(items[items.find("Bovenkant"):items.find("Onderkant")].split(":")[1].lstrip())
-    listofDmgDetails.append(items[items.find("Onderkant"):items.find("Zijkant")].split(":")[1].lstrip())
-    listofDmgDetails.append(items[items.find("Zijkant rechts"):items.find("Zijkant links")].split(":")[1].lstrip())
-    listofDmgDetails.append(items[items.find("Zijkant links"):].split(":")[1].lstrip())
+    listofDmgDetails.append(dmgDict["Verpakking"])
+    listofDmgDetails.append(dmgDict["Voorkant"])
+    listofDmgDetails.append(dmgDict["Achterkant"])
+    listofDmgDetails.append(dmgDict["Bovenkant"])
+    listofDmgDetails.append(dmgDict["Onderkant"])
+    listofDmgDetails.append(dmgDict["Zijkant rechts"])
+    listofDmgDetails.append(dmgDict["Zijkant links"])
+    listofDmgDetails.append(dmgDict["Other"])
     listofDamage.append(listofDmgDetails)
-
-    # listofTV.append(lstData)
+    listofTV.append(lstData)
 
 # Creating dataframe
 df = pd.DataFrame(listofTV, columns=['Title', 'Description', 'OldPrice', 'NewPrice', 'discount', 'link'])
 dfdmg = pd.DataFrame(listofDamage,
                      columns=['ProductID', 'Verpakking', 'Voorkant', 'Achterkant', 'Bovenkant', 'Onderkant',
-                              'Zijkantrechts', 'Zijkantlinks'])
+                              'Zijkantrechts', 'Zijkantlinks','Other'])
 
 # saving the dataframe without indexs
 df.to_csv('OutletTv.csv', index=False)
 dfdmg.to_csv('tvdetails.csv', index=False)
 
+driver.close()
+
+print("Check your CSV")
 # Providing accountstorage name , account storage key, container name to create the file in blobstorage
-# block_blob_service = BlockBlobService(account_name='pythonoqmm', account_key='hmV5qyCNX1CPLGScE3mO1xawQsO3X4BDWxtreB7kmv40RA0cZ3el5skyCKswAKdl+Q/sKPjyleYBkuQ6/BLoVg==')
-# block_blob_service.create_blob_from_path(container_name="pythonmm",blob_name="OutletTv.csv",file_path="C:\\Users\\Aqlanoz\\Desktop\\OutletMM\\OutletTv.csv")
-# block_blob_service.create_blob_from_path(container_name="pythonmm",blob_name="tvdetails.csv",file_path="C:\\Users\\Aqlanoz\\Desktop\\OutletMM\\tvdetails.csv.csv")
+block_blob_service = BlockBlobService(account_name='pythonoqmm', account_key='stgAb+W2UIHuXV3elbtAKRrubLsweoYvo4DZ6Mxc3h6/YtT+fdlPtPpfw0C8vKbyQc41FogKek+POaAuo2iCYw==')
+block_blob_service.create_blob_from_path(container_name="pythonmm",blob_name="OutletTv.csv",file_path="C:\\Users\\Aqlanoz\\PycharmProjects\\OutletTVMM\\OutletTv.csv")
+block_blob_service.create_blob_from_path(container_name="pythonmm",blob_name="tvdetails.csv",file_path="C:\\Users\\Aqlanoz\\PycharmProjects\\OutletTVMM\\tvdetails.csv")
+print("finished")
